@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLOTHESYNC ELITE - Master Ledger</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyDHS0bE8M1t2V0dnq8RxE98JIZW62WVU20",
+    authDomain: "invoicendpayment.firebaseapp.com",
+    databaseURL: "https://invoicendpayment-default-rtdb.firebaseio.com",
+    projectId: "invoicendpayment",
+    storageBucket: "invoicendpayment.firebasestorage.app",
+    messagingSenderId: "528360427335",
+    appId: "1:528360427335:web:2f8fc2c17a9fb6343b0662",
+    measurementId: "G-9RTFHHJ3L6"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+<style>
+:root { --primary: #fbbf24; --primary-hover: #f59e0b; --dark: #0f172a; --success: #10b981; --danger: #ef4444; --bg: #f1f5f9; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--dark); }
+
+/* Navigation */
+nav { background: var(--dark); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); }
+.nav-btns button { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; margin-left: 10px; font-weight: 600; transition: 0.3s; }
+.nav-btns button.active { background: var(--primary); border-color: var(--primary); color: var(--dark); }
+
+.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+
+/* Auth Screen */
+#authContainer { display: flex; align-items: center; justify-content: center; min-height: 80vh; }
+.auth-card { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+.auth-tabs { display: flex; gap: 10px; margin-bottom: 1.5rem; background: #f8fafc; padding: 5px; border-radius: 10px; }
+.auth-tabs button { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 700; color: #64748b; }
+.auth-tabs button.active { background: var(--dark); color: white; }
+
+/* Dashboard Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
+.card h3 { margin: 0; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+.card p { margin: 0.5rem 0 0; font-size: 2rem; font-weight: 800; }
+
+/* Utility Bar */
+.utility-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 15px; flex-wrap: wrap; }
+.search-input { flex-grow: 1; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; }
+.btn-action { background: var(--dark); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+/* Form */
+.form-container { background: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #e2e8f0; }
+#ledgerForm { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+.full { grid-column: span 2; }
+input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; box-sizing: border-box; }
+.btn-save { background: var(--primary); color: var(--dark); border: none; padding: 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+.btn-save:hover { background: var(--primary-hover); }
+
+/* Table */
+.table-wrapper { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.85rem; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+
+.type-badge { padding: 4px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+.badge-inv { background: #fee2e2; color: #991b1b; }
+.badge-pay { background: #dcfce7; color: #065f46; }
+
+.hidden { display: none !important; }
+.admin-section, .shop-section { display: none; }
+.active-view { display: block; }
+
+@media print { nav, .utility-bar, .form-container, .actions-col { display: none !important; } }
+</style>
+</head>
+<body>
+
+<nav id="mainNav" class="hidden">
+<div style="font-size: 1.4rem; font-weight: 900; letter-spacing: -1px;">CLOTHES<span style="color: var(--primary);">SYNC</span> <span style="font-weight: 400; font-size: 0.9rem; opacity: 0.7;">ELITE</span></div>
+<div class="nav-btns">
+<button onclick="switchView('admin')" id="adminBtn">Master Admin</button>
+<button onclick="switchView('shop')" id="shopBtn">Client Statements</button>
+<button onclick="logout()" style="color: var(--danger); border-color: var(--danger);">Exit</button>
+</div>
+</nav>
+
+<div class="container">
+<div id="authContainer">
+<div class="auth-card">
+<h1 style="margin-bottom: 0.5rem;">Welcome</h1>
+<p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Secure Ledger Access</p>
+<div class="auth-tabs">
+<button id="loginTab" class="active" onclick="toggleAuth('login')">Login</button>
+<button id="signupTab" onclick="toggleAuth('signup')">Sign Up</button>
+</div>
+<form id="authForm">
+<input type="email" id="authUser" placeholder="Email" required style="margin-bottom: 1rem;">
+<input type="password" id="authPass" placeholder="Password" required style="margin-bottom: 1.5rem;">
+<button type="submit" id="authSubmit" class="btn-save" style="width: 100%;">Enter System</button>
+</form>
+<p id="authMsg" style="margin-top: 1rem; color: var(--danger); font-size: 0.85rem; font-weight: 700;"></p>
+</div>
+</div>
+
+<div id="adminView" class="admin-section">
+<div class="stats-grid">
+<div class="card"><h3>Total Receivables</h3><p id="totalSales">$0.00</p></div>
+<div class="card"><h3>Active Portfolio</h3><p id="totalShops">0 Clients</p></div>
+<div class="card"><h3>Total Records</h3><p id="invoiceCount">0</p></div>
+</div>
+
+<div class="form-container">
+<h2 style="margin-top:0">Register New Transaction</h2>
+<form id="ledgerForm">
+<input type="hidden" id="editIndex" value="-1">
+<div><label>Transaction Type</label><select id="entryType"><option value="invoice">Invoice (+)</option><option value="payment">Payment (-)</option></select></div>
+<div><label>Client Login ID</label><input type="text" id="shopSerial" placeholder="e.g. SHOP-101" required></div>
+<div><label>Client Name</label><input type="text" id="shopName" placeholder="Full Name" required></div>
+<div><label>Reference ID</label><input type="text" id="refSerial" placeholder="INV-2026-001" required></div>
+<div><label>Date</label><input type="date" id="date" required></div>
+<div><label>Total Amount ($)</label><input type="number" id="amount" step="0.01" required></div>
+<div class="full"><label>Document Attachment</label><input type="file" id="imageFile" accept="image/*"></div>
+<button type="submit" id="submitBtn" class="btn-save full">Update Ledger</button>
+</form>
+</div>
+
+<div class="utility-bar">
+<input type="text" id="masterSearch" class="search-input" placeholder="🔍 Search by Client Name, ID, or Reference #..." onkeyup="filterTable()">
+<button onclick="exportToCSV()" class="btn-action">📊 Export to Excel</button>
+</div>
+
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Date</th><th>Client Name & ID</th><th>Type</th><th>Ref #</th><th>Amount</th><th>Doc</th><th class="actions-col">Actions</th></tr>
+</thead>
+<tbody id="adminTableBody"></tbody>
+</table>
+</div>
+
+<div style="margin-top: 3rem; text-align: center;">
+<button onclick="deleteAllRecords()" style="background: none; border: 1px solid #cbd5e1; color: #94a3b8; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">⚠️ Delete All Records (Admin Only)</button>
+</div>
+</div>
+
+<div id="shopView" class="shop-section">
+<div class="card" style="text-align: center; border-left: none; border-top: 5px solid var(--primary);">
+<h2>View Statement</h2>
+<div style="max-width: 500px; margin: 1.5rem auto; display: flex; gap: 10px;">
+<input type="text" id="shopLoginSearch" class="search-input" placeholder="Enter Client ID">
+<button onclick="loadShopData()" class="btn-action" style="background: var(--primary); color: var(--dark);">Fetch Data</button>
+</div>
+</div>
+<div id="shopDashboard" class="hidden" style="margin-top: 2rem;">
+<div class="stats-grid">
+<div class="card"><h3>Closing Balance</h3><p id="shopTotal">$0.00</p></div>
+<div class="card"><h3>Records Found</h3><p id="shopCount">0</p></div>
+</div>
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Amount</th><th>View</th></tr></thead>
+<tbody id="shopTableBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+let authMode = 'login';
+const MASTER_ADMIN = 'joekids1967@gmail.com';
+let users = JSON.parse(localStorage.getItem('sync_users')) || { 'joekids1967@gmail.com': 'jsecl2006' };
+let ledger = JSON.parse(localStorage.getItem('wholesaler_ledger')) || [];
+
+// --- AUTH ---
+function toggleAuth(mode) {
+authMode = mode;
+document.getElementById('loginTab').className = mode === 'login' ? 'active' : '';
+document.getElementById('signupTab').className = mode === 'signup' ? 'active' : '';
+}
+
+document.getElementById('authForm').addEventListener('submit', (e) => {
+e.preventDefault();
+const u = document.getElementById('authUser').value.toLowerCase().trim();
+const p = document.getElementById('authPass').value;
+if(authMode === 'signup') {
+if(users[u]) return alert("User exists!");
+users[u] = p;
+localStorage.setItem('sync_users', JSON.stringify(users));
+alert("Registered! Please login."); toggleAuth('login');
+} else {
+if(users[u] === p) {
+sessionStorage.setItem('isLogged', 'true');
+sessionStorage.setItem('user', u);
+initApp(u);
+} else alert("Invalid Credentials");
+}
+});
+
+function initApp(user) {
+document.getElementById('authContainer').classList.add('hidden');
+document.getElementById('mainNav').classList.remove('hidden');
+if(user === MASTER_ADMIN) {
+document.getElementById('adminBtn').classList.remove('hidden');
+switchView('admin');
+} else {
+document.getElementById('adminBtn').classList.add('hidden');
+switchView('shop');
+document.getElementById('shopLoginSearch').value = user.toUpperCase();
+loadShopData();
+}
+}
+
+function logout() { sessionStorage.clear(); location.reload(); }
+
+function switchView(view) {
+document.querySelectorAll('.admin-section, .shop-section').forEach(s => s.classList.remove('active-view'));
+document.querySelectorAll('.nav-btns button').forEach(b => b.classList.remove('active'));
+document.getElementById(view + 'View').classList.add('active-view');
+document.getElementById(view + 'Btn').classList.add('active');
+if(view === 'admin') renderAdmin();
+}
+
+document.getElementById('ledgerForm').addEventListener('submit', function(e) {
+e.preventDefault();
+const file = document.getElementById('imageFile').files[0];
+const entry = {
+type: document.getElementById('entryType').value,
+shopSerial: document.getElementById('shopSerial').value.toUpperCase().trim(),
+shopName: document.getElementById('shopName').value.trim(),
+refSerial: document.getElementById('refSerial').value.trim(),
+date: document.getElementById('date').value,
+amount: parseFloat(document.getElementById('amount').value),
+image: 'https://via.placeholder.com/50?text=No+Doc'
+};
+
+const save = () => {
+ledger.unshift(entry);
+localStorage.setItem('wholesaler_ledger', JSON.stringify(ledger));
+renderAdmin(); e.target.reset();
+};
+
+if(file) {
+const reader = new FileReader();
+reader.onloadend = () => { entry.image = reader.result; save(); };
+reader.readAsDataURL(file);
+} else save();
+});
+
+// --- UPDATED RENDER: SHOWS NAME & ID ---
+function renderAdmin(data = ledger) {
+const body = document.getElementById('adminTableBody');
+body.innerHTML = '';
+let total = 0; let clients = new Set();
+data.forEach((item, i) => {
+const isPay = item.type === 'payment';
+total += isPay ? -item.amount : item.amount;
+clients.add(item.shopSerial);
+
+const clientDisplay = `
+<div style="font-weight:700">${item.shopName}</div>
+<div style="font-size:0.75rem; color:#64748b;">ID: ${item.shopSerial}</div>
+`;
+
+body.innerHTML += `<tr>
+<td>${item.date}</td>
+<td>${clientDisplay}</td>
+<td><span class="type-badge ${isPay?'badge-pay':'badge-inv'}">${item.type}</span></td>
+<td>${item.refSerial}</td>
+<td style="color:${isPay?'var(--success)':'var(--danger)'}; font-weight:700">${isPay?'-':''}$${item.amount.toFixed(2)}</td>
+<td><img src="${item.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;" onclick="window.open('${item.image}')"></td>
+<td class="actions-col"><button onclick="deleteEntry(${i})" style="border:none;background:none;cursor:pointer;">🗑️</button></td>
+</tr>`;
+});
+document.getElementById('totalSales').innerText = `$${total.toFixed(2)}`;
+document.getElementById('totalShops').innerText = clients.size + " Clients";
+document.getElementById('invoiceCount').innerText = data.length;
+}
+
+// --- UPDATED SEARCH: FILTERS BY NAME OR ID ---
+function filterTable() {
+const query = document.getElementById('masterSearch').value.toLowerCase();
+const filtered = ledger.filter(item =>
+item.shopSerial.toLowerCase().includes(query) ||
+item.shopName.toLowerCase().includes(query) ||
+item.refSerial.toLowerCase().includes(query)
+);
+renderAdmin(filtered);
+}
+
+function exportToCSV() {
+let csv = "Date,Client ID,Client Name,Type,Reference,Amount\n";
+ledger.forEach(row => { csv += `${row.date},${row.shopSerial},${row.shopName},${row.type},${row.refSerial},${row.amount}\n`; });
+const blob = new Blob([csv], { type: 'text/csv' });
+const url = window.URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.setAttribute('href', url);
+a.setAttribute('download', 'ClothesSync_Ledger_2026.csv');
+a.click();
+}
+
+function deleteEntry(i) { if(confirm("Delete entry?")) { ledger.splice(i,1); localStorage.setItem('wholesaler_ledger', JSON.stringify(ledger)); renderAdmin(); } }
+
+function deleteAllRecords() {
+const pass = prompt("Enter Admin Password:");
+if(pass === users[MASTER_ADMIN]) {
+if(confirm("Wipe all data?")) {
+ledger = [];
+localStorage.setItem('wholesaler_ledger', JSON.stringify(ledger));
+renderAdmin();
+}
+}
+}
+
+function loadShopData() {
+const id = document.getElementById('shopLoginSearch').value.toUpperCase().trim();
+const filtered = ledger.filter(item => item.shopSerial === id);
+if(filtered.length > 0) {
+document.getElementById('shopDashboard').classList.remove('hidden');
+const body = document.getElementById('shopTableBody'); body.innerHTML = ''; let bal = 0;
+filtered.forEach(item => {
+const isPay = item.type === 'payment'; bal += isPay ? -item.amount : item.amount;
+body.innerHTML += `<tr><td>${item.date}</td><td>${item.refSerial}</td><td><span class="type-badge ${isPay?'badge-pay':'badge-inv'}">${item.type}</span></td><td>$${item.amount.toFixed(2)}</td><td><button onclick="window.open('${item.image}')">View</button></td></tr>`;
+});
+document.getElementById('shopTotal').innerText = `$${bal.toFixed(2)}`;
+document.getElementById('shopCount').innerText = filtered.length;
+} else alert("No data found.");
+}
+
+if(sessionStorage.getItem('isLogged')) initApp(sessionStorage.getItem('user'));
+</script>
+</body>
+</html>
