@@ -80,7 +80,7 @@
                 <button id="signupTab" onclick="toggleAuth('signup')">Sign Up</button>
             </div>
             <form id="authForm">
-                <input type="text" id="authUser" placeholder="Username" required style="margin-bottom: 1rem;">
+                <input type="email" id="authUser" placeholder="Email Address" required style="margin-bottom: 1rem;">
                 <input type="password" id="authPass" placeholder="Password" required style="margin-bottom: 1.5rem;">
                 <button type="submit" id="authSubmit" class="btn-save" style="width: 100%;">Enter System</button>
             </form>
@@ -100,7 +100,7 @@
             <form id="ledgerForm">
                 <input type="hidden" id="editIndex" value="-1">
                 <div><label>Transaction Type</label><select id="entryType"><option value="invoice">Invoice (+)</option><option value="payment">Payment (-)</option></select></div>
-                <div><label>Client Login ID</label><input type="text" id="shopSerial" placeholder="e.g. SHOP-101" required></div>
+                <div><label>Client Login Email (ID)</label><input type="email" id="shopSerial" placeholder="client@email.com" required></div>
                 <div><label>Client Name</label><input type="text" id="shopName" placeholder="Full Name" required></div>
                 <div><label>Reference ID</label><input type="text" id="refSerial" placeholder="INV-2026-001" required></div>
                 <div><label>Date</label><input type="date" id="date" required></div>
@@ -111,14 +111,14 @@
         </div>
 
         <div class="utility-bar">
-            <input type="text" id="masterSearch" class="search-input" placeholder="🔍 Search by Client Name, ID, or Reference #..." onkeyup="filterTable()">
+            <input type="text" id="masterSearch" class="search-input" placeholder="🔍 Search by Client Name, Email, or Reference #..." onkeyup="filterTable()">
             <button onclick="exportToCSV()" class="btn-action">📊 Export to Excel</button>
         </div>
 
         <div class="table-wrapper">
             <table>
                 <thead>
-                    <tr><th>Date</th><th>Client Name & ID</th><th>Type</th><th>Ref #</th><th>Amount</th><th>Doc</th><th class="actions-col">Actions</th></tr>
+                    <tr><th>Date</th><th>Client Name & Email</th><th>Type</th><th>Ref #</th><th>Amount</th><th>Doc</th><th class="actions-col">Actions</th></tr>
                 </thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
@@ -133,7 +133,7 @@
         <div class="card" style="text-align: center; border-left: none; border-top: 5px solid var(--primary);">
             <h2>View Statement</h2>
             <div style="max-width: 500px; margin: 1.5rem auto; display: flex; gap: 10px;">
-                <input type="text" id="shopLoginSearch" class="search-input" placeholder="Enter Client ID">
+                <input type="email" id="shopLoginSearch" class="search-input" placeholder="Enter Client Email">
                 <button onclick="loadShopData()" class="btn-action" style="background: var(--primary); color: var(--dark);">Fetch Data</button>
             </div>
         </div>
@@ -154,8 +154,15 @@
 
 <script>
     let authMode = 'login';
-    const MASTER_ADMIN = 'admin'; 
-    let users = JSON.parse(localStorage.getItem('sync_users')) || { 'admin': 'admin123' };
+    
+    // --- UPDATED ADMIN CREDENTIALS ---
+    const MASTER_ADMIN = 'joekids1967@gmail.com'; 
+    
+    // Initialize users with your new credentials
+    let users = JSON.parse(localStorage.getItem('sync_users')) || { 
+        'joekids1967@gmail.com': 'jsecl2006' 
+    };
+    
     let ledger = JSON.parse(localStorage.getItem('wholesaler_ledger')) || [];
 
     // --- AUTH ---
@@ -169,35 +176,44 @@
         e.preventDefault();
         const u = document.getElementById('authUser').value.toLowerCase().trim();
         const p = document.getElementById('authPass').value;
+        
         if(authMode === 'signup') {
-            if(users[u]) return alert("User exists!");
+            if(users[u]) return alert("User already exists!");
             users[u] = p;
             localStorage.setItem('sync_users', JSON.stringify(users));
-            alert("Registered! Please login."); toggleAuth('login');
+            alert("Registered successfully! Please login."); 
+            toggleAuth('login');
         } else {
             if(users[u] === p) {
                 sessionStorage.setItem('isLogged', 'true');
                 sessionStorage.setItem('user', u);
                 initApp(u);
-            } else alert("Invalid Credentials");
+            } else {
+                alert("Invalid Credentials. Please check your email and password.");
+            }
         }
     });
 
     function initApp(user) {
         document.getElementById('authContainer').classList.add('hidden');
         document.getElementById('mainNav').classList.remove('hidden');
+        
         if(user === MASTER_ADMIN) {
             document.getElementById('adminBtn').classList.remove('hidden');
             switchView('admin');
         } else {
+            // Clients only see their own dashboard
             document.getElementById('adminBtn').classList.add('hidden');
             switchView('shop');
-            document.getElementById('shopLoginSearch').value = user.toUpperCase();
+            document.getElementById('shopLoginSearch').value = user;
             loadShopData();
         }
     }
 
-    function logout() { sessionStorage.clear(); location.reload(); }
+    function logout() { 
+        sessionStorage.clear(); 
+        location.reload(); 
+    }
 
     function switchView(view) {
         document.querySelectorAll('.admin-section, .shop-section').forEach(s => s.classList.remove('active-view'));
@@ -212,7 +228,7 @@
         const file = document.getElementById('imageFile').files[0];
         const entry = {
             type: document.getElementById('entryType').value,
-            shopSerial: document.getElementById('shopSerial').value.toUpperCase().trim(),
+            shopSerial: document.getElementById('shopSerial').value.toLowerCase().trim(),
             shopName: document.getElementById('shopName').value.trim(),
             refSerial: document.getElementById('refSerial').value.trim(),
             date: document.getElementById('date').value,
@@ -223,7 +239,8 @@
         const save = () => {
             ledger.unshift(entry);
             localStorage.setItem('wholesaler_ledger', JSON.stringify(ledger));
-            renderAdmin(); e.target.reset();
+            renderAdmin(); 
+            e.target.reset();
         };
 
         if(file) {
@@ -233,7 +250,6 @@
         } else save();
     });
 
-    // --- UPDATED RENDER: SHOWS NAME & ID ---
     function renderAdmin(data = ledger) {
         const body = document.getElementById('adminTableBody');
         body.innerHTML = '';
@@ -245,7 +261,7 @@
             
             const clientDisplay = `
                 <div style="font-weight:700">${item.shopName}</div>
-                <div style="font-size:0.75rem; color:#64748b;">ID: ${item.shopSerial}</div>
+                <div style="font-size:0.75rem; color:#64748b;">${item.shopSerial}</div>
             `;
 
             body.innerHTML += `<tr>
@@ -263,7 +279,6 @@
         document.getElementById('invoiceCount').innerText = data.length;
     }
 
-    // --- UPDATED SEARCH: FILTERS BY NAME OR ID ---
     function filterTable() {
         const query = document.getElementById('masterSearch').value.toLowerCase();
         const filtered = ledger.filter(item => 
@@ -275,7 +290,7 @@
     }
 
     function exportToCSV() {
-        let csv = "Date,Client ID,Client Name,Type,Reference,Amount\n";
+        let csv = "Date,Client Email,Client Name,Type,Reference,Amount\n";
         ledger.forEach(row => { csv += `${row.date},${row.shopSerial},${row.shopName},${row.type},${row.refSerial},${row.amount}\n`; });
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -288,18 +303,20 @@
     function deleteEntry(i) { if(confirm("Delete entry?")) { ledger.splice(i,1); localStorage.setItem('wholesaler_ledger', JSON.stringify(ledger)); renderAdmin(); } }
     
     function deleteAllRecords() {
-        const pass = prompt("Enter Admin Password:");
-        if(pass === users['admin']) {
-            if(confirm("Wipe all data?")) {
+        const pass = prompt("Enter Admin Password to Wipe Data:");
+        if(pass === users[MASTER_ADMIN]) {
+            if(confirm("Are you sure? This cannot be undone.")) {
                 ledger = [];
                 localStorage.setItem('wholesaler_ledger', JSON.stringify(ledger));
                 renderAdmin();
             }
+        } else {
+            alert("Incorrect Password.");
         }
     }
 
     function loadShopData() {
-        const id = document.getElementById('shopLoginSearch').value.toUpperCase().trim();
+        const id = document.getElementById('shopLoginSearch').value.toLowerCase().trim();
         const filtered = ledger.filter(item => item.shopSerial === id);
         if(filtered.length > 0) {
             document.getElementById('shopDashboard').classList.remove('hidden');
@@ -310,9 +327,10 @@
             });
             document.getElementById('shopTotal').innerText = `$${bal.toFixed(2)}`;
             document.getElementById('shopCount').innerText = filtered.length;
-        } else alert("No data found.");
+        } else alert("No statement data found for this email.");
     }
 
+    // Auto-login if session exists
     if(sessionStorage.getItem('isLogged')) initApp(sessionStorage.getItem('user'));
 </script>
 </body>
